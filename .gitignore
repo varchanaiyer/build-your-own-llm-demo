@@ -1,0 +1,5 @@
+.venv/
+__pycache__/
+*.pyc
+backend/data/shakespeare_full.txt
+.DS_Store

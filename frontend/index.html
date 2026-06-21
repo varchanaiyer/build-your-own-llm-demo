@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Build Your Own LLM</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">◧</span>
+      <div>
+        <div class="title">Build Your Own LLM</div>
+        <div class="subtitle">Algoverse AI Research · interactive walkthrough</div>
+      </div>
+    </div>
+    <div class="progress-pill" id="progressPill">Step 1 of 8</div>
+  </header>
+
+  <div class="layout">
+    <!-- Step navigation -->
+    <nav class="sidebar" id="sidebar">
+      <button class="nav-item active" data-step="0"><span>1</span> Data Selection</button>
+      <button class="nav-item" data-step="1"><span>2</span> Tokenization</button>
+      <button class="nav-item" data-step="2"><span>3</span> Embeddings</button>
+      <button class="nav-item" data-step="3"><span>4</span> Attention</button>
+      <button class="nav-item" data-step="4"><span>5</span> Architecture</button>
+      <button class="nav-item" data-step="5"><span>6</span> Hyperparameters</button>
+      <button class="nav-item" data-step="6"><span>7</span> Train</button>
+      <button class="nav-item" data-step="7"><span>8</span> Generate</button>
+    </nav>
+
+    <main class="content">
+
+      <!-- STEP 0: DATA -->
+      <section class="step active" data-step="0">
+        <h1>1 · Pick Your Training Text</h1>
+        <p class="lead">A model learns patterns from <em>whatever you feed it</em>. Train on
+          Shakespeare and it writes like Shakespeare; train on recipes and it writes recipes.
+          <strong>Garbage in = garbage out.</strong></p>
+        <div class="note">Select one or more corpora below. They get concatenated into one
+          training file, then turned into a vocabulary in the next step.</div>
+        <div id="datasetList" class="dataset-grid">Loading datasets…</div>
+        <div class="totals" id="dataTotals"></div>
+        <div class="actions">
+          <button class="btn primary" id="buildVocabBtn" disabled>Use this data →</button>
+          <span class="status" id="dataStatus"></span>
+        </div>
+      </section>
+
+      <!-- STEP 1: TOKENIZATION -->
+      <section class="step" data-step="1">
+        <h1>2 · Tokenization</h1>
+        <p class="lead">Computers don't understand letters — they understand numbers. We break
+          text into <strong>tokens</strong> (here, single characters) and map each one to an id
+          using a <em>vocabulary</em>.</p>
+        <div class="code-illustration">"hello" → ['h','e','l','l','o'] → [3, 2, 4, 4, 5]</div>
+        <label class="field-label">Type something to tokenize:</label>
+        <input type="text" id="tokenInput" class="text-input" value="To be, or not to be" />
+        <div id="tokenOutput" class="token-output"></div>
+        <div class="vocab-info" id="vocabInfo"></div>
+      </section>
+
+      <!-- STEP 2: EMBEDDINGS -->
+      <section class="step" data-step="2">
+        <h1>3 · Embeddings</h1>
+        <p class="lead">An id like <code>5</code> doesn't capture meaning. So each token becomes a
+          <strong>vector</strong> — a list of numbers that places it in "meaning space."
+          Words with similar meanings end up <strong>close together</strong>.</p>
+        <div class="note">Below: tiny 4-number embeddings for five words. We compute
+          <strong>cosine similarity</strong> — values near <code>1.0</code> mean "very similar."</div>
+        <div id="embeddingDemo" class="embed-demo">Loading…</div>
+      </section>
+
+      <!-- STEP 3: ATTENTION -->
+      <section class="step" data-step="3">
+        <h1>4 · The Attention Mechanism</h1>
+        <p class="lead">"The animal didn't cross the street because <strong>it</strong> was too tired."
+          What does "it" refer to? <strong>Attention</strong> lets each word look back and decide
+          which other words matter.</p>
+        <div class="note">For each word the model asks: <strong>Query</strong> (what am I looking
+          for?), <strong>Key</strong> (what do I contain?), <strong>Value</strong> (what info do I
+          give?). The scores below show what the word <code>"sat"</code> pays attention to, after a
+          softmax turns them into probabilities.</div>
+        <div id="attentionDemo" class="attn-demo">Loading…</div>
+      </section>
+
+      <!-- STEP 4: ARCHITECTURE -->
+      <section class="step" data-step="4">
+        <h1>5 · Choose Your Model Style</h1>
+        <p class="lead">Think of architectures like car brands — all are transformers, just with
+          different design choices. Bigger = more capable but slower to train.</p>
+        <div id="archList" class="arch-grid">Loading…</div>
+        <div class="actions">
+          <span class="status" id="archStatus">Selected: GPT-2 (small)</span>
+        </div>
+      </section>
+
+      <!-- STEP 5: HYPERPARAMETERS -->
+      <section class="step" data-step="5">
+        <h1>6 · Hyperparameters</h1>
+        <p class="lead">These knobs control <em>how</em> the model learns. The defaults are good for
+          a classroom demo (trains in well under a minute on a laptop).</p>
+        <div class="hparams">
+          <div class="hparam">
+            <label>Batch size</label>
+            <input type="number" id="hpBatch" value="32" min="1" max="256" />
+            <small>How many examples to learn from at once.</small>
+          </div>
+          <div class="hparam">
+            <label>Epochs</label>
+            <input type="number" id="hpEpochs" value="3" min="1" max="50" />
+            <small>How many passes over the data. Too many → overfitting.</small>
+          </div>
+          <div class="hparam">
+            <label>Steps / epoch</label>
+            <input type="number" id="hpSteps" value="200" min="20" max="2000" />
+            <small>Training updates per epoch.</small>
+          </div>
+          <div class="hparam">
+            <label>Learning rate</label>
+            <input type="number" id="hpLr" value="0.001" step="0.0001" min="0.0001" max="0.1" />
+            <small>Step size. Too high = chaotic, too low = painfully slow.</small>
+          </div>
+          <div class="hparam">
+            <label>Weight decay</label>
+            <input type="number" id="hpWd" value="0.01" step="0.001" min="0" max="0.5" />
+            <small>A "stay simple" reminder that fights memorization.</small>
+          </div>
+          <div class="hparam">
+            <label>Context length</label>
+            <input type="number" id="hpBlock" value="128" min="16" max="256" />
+            <small>How many characters back the model can see.</small>
+          </div>
+        </div>
+        <div class="note" id="totalStepsNote"></div>
+      </section>
+
+      <!-- STEP 6: TRAIN -->
+      <section class="step" data-step="6">
+        <h1>7 · Train Your LLM</h1>
+        <p class="lead">Now the loop runs: show the model some text, it predicts the next character,
+          we measure how wrong it was (the <strong>loss</strong>), and nudge its weights.
+          Repeat thousands of times — the loss should fall.</p>
+        <div class="actions">
+          <button class="btn primary" id="trainBtn">▶ Start training</button>
+          <button class="btn ghost" id="stopBtn" disabled>■ Stop</button>
+          <span class="status" id="trainStatus">Idle</span>
+        </div>
+        <div class="train-grid">
+          <div class="panel">
+            <div class="panel-title">Loss curve</div>
+            <canvas id="lossChart" width="520" height="240"></canvas>
+            <div class="metrics" id="trainMetrics"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Live sample (model writing as it learns)</div>
+            <pre id="liveSample" class="sample-box">—</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 7: GENERATE -->
+      <section class="step" data-step="7">
+        <h1>8 · Generate Text</h1>
+        <p class="lead">Inference time. Give the model a prompt and it predicts one token at a time,
+          feeding each prediction back in. The sampling knobs control how creative it gets.</p>
+        <label class="field-label">Prompt</label>
+        <textarea id="genPrompt" class="text-area" rows="2">First Citizen:</textarea>
+        <div class="gen-controls">
+          <div class="gen-ctrl">
+            <label>Max new tokens</label>
+            <input type="number" id="genMax" value="300" min="10" max="1000" />
+          </div>
+          <div class="gen-ctrl">
+            <label>Temperature <small>(randomness)</small></label>
+            <input type="range" id="genTemp" min="0.1" max="1.5" step="0.1" value="0.8" />
+            <span id="genTempVal">0.8</span>
+          </div>
+          <div class="gen-ctrl">
+            <label>Top-K <small>(0 = off)</small></label>
+            <input type="number" id="genTopK" value="0" min="0" max="100" />
+          </div>
+          <div class="gen-ctrl">
+            <label>Top-P <small>(0 = off)</small></label>
+            <input type="number" id="genTopP" value="0" min="0" max="1" step="0.05" />
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn primary" id="genBtn">Generate</button>
+          <span class="status" id="genStatus"></span>
+        </div>
+        <pre id="genOutput" class="sample-box big">—</pre>
+        <div class="note">Try: low temperature (0.2) = predictable; high (1.4) = creative but weird.
+          Retrain on a different dataset in Step 1 and watch the style change.</div>
+      </section>
+
+      <!-- footer nav -->
+      <div class="footer-nav">
+        <button class="btn ghost" id="prevBtn">← Back</button>
+        <button class="btn primary" id="nextBtn">Next →</button>
+      </div>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,4 +1,15 @@
+# CPU-only torch keeps the install small enough for free hosts (Streamlit Cloud).
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# Web-app (FastAPI) path
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
 pydantic==2.9.0
+
+# Streamlit path
+streamlit==1.39.0
+pandas==2.2.3
+matplotlib==3.9.2
+
+# Shared model engine
 torch>=2.0.0
